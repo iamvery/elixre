@@ -9,19 +9,24 @@ defmodule Elixre do
   end
 
   plug Plug.NormalizeRootRequests
-  plug Plug.Parsers,
-    parsers: [:json],
-    pass: ["*/*"],
-    json_decoder: Poison
+  plug Plug.Parsers, parsers: [:json], json_decoder: Poison
   plug Plug.Static, at: "/", from: "public"
   plug :match
   plug :dispatch
 
-  @array Poison.encode!(File.read!("public/array.js"))
   post "/regex" do
+    list     = conn.body_params["_json"]
+    reversed = list |> Enum.reverse
+    json     = reversed |> Poison.encode!
+
+    IO.inspect conn.body_params
+    IO.inspect list
+    IO.inspect reversed
+    IO.inspect json
+
     conn
-    |> put_resp_content_type("application/json")
-    |> send_resp(200, Poison.decode!(@array))
+    |> put_resp_header("content-type", "application/json")
+    |> send_resp(200, json)
   end
 
   match _ do
